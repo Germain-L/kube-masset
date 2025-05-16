@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-data-pvc
+  labels:
+    app: gestion-produits
+    variant: postgresql
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-postgresql
+  resources:
+    requests:
+      storage: 1Gi

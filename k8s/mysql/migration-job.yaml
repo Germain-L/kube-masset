@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-migration-job
+  labels:
+    app: gestion-produits
+    variant: mysql
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: mysql-migration
+        image: mariadb:10.6
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          apt-get update && 
+          apt-get install -y wait-for-it &&
+          echo "Waiting for database to be ready..." &&
+          wait-for-it -t 120 mysql-service:3306 &&
+          echo "Creating database if it doesn't exist..." &&
+          mysql -h mysql-service -u root -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;" &&
+          echo "Running SQL script..." &&
+          mysql -h mysql-service -u root -p$MYSQL_ROOT_PASSWORD $DB_NAME < /docker-entrypoint-initdb.d/gestion_produits.sql &&
+          echo "Migration completed!"
+        envFrom:
+        - configMapRef:
+            name: mysql-config
+        - secretRef:
+            name: mysql-secrets
+        env:
+        - name: MYSQL_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: DB_NAME
+        - name: MYSQL_USER
+          valueFrom:
+            configMapKeyRef:
+              name: mysql-config
+              key: DB_USER
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: DB_PASSWORD
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: MYSQL_ROOT_PASSWORD
+        volumeMounts:
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: init-sql
+        configMap:
+          name: mysql-init-sql
+      restartPolicy: OnFailure

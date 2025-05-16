@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service-mysql
+  labels:
+    app: gestion-produits
+    variant: mysql
+    tier: frontend
+spec:
+  selector:
+    app: gestion-produits
+    variant: mysql
+    tier: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

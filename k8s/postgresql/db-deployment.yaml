@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgresql-deployment
+  labels:
+    app: gestion-produits
+    variant: postgresql
+    tier: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gestion-produits
+      variant: postgresql
+      tier: database
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: gestion-produits
+        variant: postgresql
+        tier: database
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres:14-alpine
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        envFrom:
+        - configMapRef:
+            name: postgresql-config
+        - secretRef:
+            name: postgresql-secrets
+        volumeMounts:
+        - name: postgresql-persistent-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "0.5"
+          requests:
+            memory: 256Mi
+            cpu: "0.2"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - gestionuser
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - gestionuser
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: postgresql-persistent-storage
+        persistentVolumeClaim:
+          claimName: postgresql-data-pvc

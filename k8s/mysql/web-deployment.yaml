@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment-mysql
+  labels:
+    app: gestion-produits
+    variant: mysql
+    tier: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: gestion-produits
+      variant: mysql
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: gestion-produits
+        variant: mysql
+        tier: frontend
+    spec:
+      containers:
+      - name: php-apache
+        image: registry.germainleignel.com/library/gestion-produits:latest  # You'll need to build and push this image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        envFrom:
+        - configMapRef:
+            name: mysql-config
+        - secretRef:
+            name: mysql-secrets
+        volumeMounts:
+        - name: uploads-storage
+          mountPath: /var/www/html/uploads
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: "0.3"
+          requests:
+            memory: 128Mi
+            cpu: "0.1"
+        livenessProbe:
+          httpGet:
+            path: /env_test.php
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /env_test.php
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: uploads-storage
+        persistentVolumeClaim:
+          claimName: uploads-pvc-mysql

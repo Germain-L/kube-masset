@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: postgresql-migration-job
+  labels:
+    app: gestion-produits
+    variant: postgresql
+spec:
+  ttlSecondsAfterFinished: 100
+  template:
+    spec:
+      containers:
+      - name: postgresql-migration
+        image: postgres:14-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          apk add --no-cache --update postgresql-client wait4ports &&
+          echo "Waiting for database to be ready..." &&
+          wait4ports -q tcp://postgresql-service:5432 -t 120 &&
+          echo "Running SQL script..." &&
+          PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgresql-service -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/init.sql &&
+          echo "Migration completed!"
+        envFrom:
+        - configMapRef:
+            name: postgresql-config
+        - secretRef:
+            name: postgresql-secrets
+        volumeMounts:
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+      - name: init-sql
+        configMap:
+          name: postgresql-init-sql
+      restartPolicy: OnFailure

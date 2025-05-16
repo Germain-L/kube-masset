@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: uploads-pvc-mysql
+  labels:
+    app: gestion-produits
+    variant: mysql
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn-mysql
+  resources:
+    requests:
+      storage: 2Gi
