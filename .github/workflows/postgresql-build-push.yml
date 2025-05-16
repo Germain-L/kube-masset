@@ -74,6 +74,4 @@ jobs:
           
       - name: Deploy to K3s
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ~/projects/gestion-produits && \
-          git pull && \
-          ./deploy-k8s.sh dev postgresql"
+          ssh -o StrictHostKeyChecking=accept-new ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'cd ~/projects/gestion-produits && git pull && ./deploy-k8s.sh dev postgresql'
