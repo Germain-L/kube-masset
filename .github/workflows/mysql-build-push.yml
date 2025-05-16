@@ -73,4 +73,4 @@ jobs:
           
       - name: Deploy to K3s
         run: |
-          ssh -o StrictHostKeyChecking=accept-new ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'cd ~/projects/gestion-produits && git pull && ./deploy-k8s.sh prod mysql'
+          ssh -o StrictHostKeyChecking=accept-new ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'cd ~/projects/gestion-produits && git pull && ./deploy-k8s.sh ${{ github.workflow == "PostgreSQL Build and Push" && "dev" || "prod" }} ${{ github.workflow == "PostgreSQL Build and Push" && "postgresql" || "mysql" }}'
