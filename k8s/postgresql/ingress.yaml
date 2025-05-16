@@ -2,17 +2,18 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gestion-produits-postgresql-ingress
+  namespace: gestion-produits-postgresql
   annotations:
-    kubernetes.io/ingress.class: "traefik"  # Change to your ingress class if different
+    ingressClassName: traefik
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # For certificate management
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   tls:
   - hosts:
-    - dev.gestion-produits.local  # Replace with your domain
+    - gestion-produits-pg.germainleignel.com
     secretName: postgresql-tls-cert
   rules:
-  - host: dev.gestion-produits.local  # Replace with your domain
+  - host: gestion-produits-pg.germainleignel.com
     http:
       paths:
       - path: /

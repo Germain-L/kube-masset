@@ -19,8 +19,9 @@ spec:
           echo "Waiting for database to be ready..." &&
           wait4ports -q tcp://postgresql-service:5432 -t 120 &&
           echo "Running SQL script..." &&
+          # Use a safe execution approach
           PGPASSWORD="$POSTGRES_PASSWORD" psql -h postgresql-service -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /docker-entrypoint-initdb.d/init.sql &&
-          echo "Migration completed!"
+          echo "Migration completed successfully!"
         envFrom:
         - configMapRef:
             name: postgresql-config

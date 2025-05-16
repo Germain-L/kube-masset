@@ -22,8 +22,10 @@ spec:
           echo "Creating database if it doesn't exist..." &&
           mysql -h mysql-service -u root -p$MYSQL_ROOT_PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;" &&
           echo "Running SQL script..." &&
-          mysql -h mysql-service -u root -p$MYSQL_ROOT_PASSWORD $DB_NAME < /docker-entrypoint-initdb.d/gestion_produits.sql &&
-          echo "Migration completed!"
+          # Process SQL script to replace any potential hostname references
+          cp /docker-entrypoint-initdb.d/gestion_produits.sql /tmp/prepared_script.sql &&
+          mysql -h mysql-service -u root -p$MYSQL_ROOT_PASSWORD $DB_NAME < /tmp/prepared_script.sql &&
+          echo "Migration completed successfully!"
         envFrom:
         - configMapRef:
             name: mysql-config

@@ -2,17 +2,18 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: gestion-produits-mysql-ingress
+  namespace: gestion-produits-mysql
   annotations:
-    kubernetes.io/ingress.class: "traefik"  # Change to your ingress class if different
+    ingressClassName: traefik
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # For certificate management
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   tls:
   - hosts:
-    - www.gestion-produits.local  # Replace with your domain
+    - gestion-produits.germainleignel.com
     secretName: mysql-tls-cert
   rules:
-  - host: www.gestion-produits.local  # Replace with your domain
+  - host: gestion-produits.germainleignel.com
     http:
       paths:
       - path: /

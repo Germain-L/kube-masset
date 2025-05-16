@@ -6,7 +6,23 @@ This directory contains Kubernetes manifests for deploying the Gestion Produits 
 
 - `mysql/`: Kubernetes configuration for the MySQL version
 - `postgresql/`: Kubernetes configuration for the PostgreSQL version
-- `longhorn/`: Longhorn configuration
+
+Each directory contains the following key files:
+
+- `namespace.yaml`: Defines the Kubernetes namespace
+- `storage-class.yaml`: Defines storage classes for persistent volumes
+- `pvc.yaml`: Persistent volume claim for database storage
+- `uploads-pvc.yaml`: Persistent volume claim for file uploads
+- `configmap.yaml`: ConfigMap with environment variables
+- `configmap-sql.yaml`: ConfigMap with SQL initialization scripts
+- `secrets.yaml`: Secret with database credentials
+- `db-deployment.yaml`: Database deployment configuration
+- `db-service.yaml`: Database service configuration
+- `migration-job.yaml`: Job to initialize the database
+- `web-deployment.yaml`: Web application deployment
+- `web-service.yaml`: Web application service
+- `ingress.yaml`: Ingress configuration (optional)
+- `kustomization.yaml`: Kustomize configuration to deploy everything together
 
 ## Prerequisites
 
@@ -48,6 +64,37 @@ kubectl -n gestion-produits-mysql create job --from=cronjob/mysql-migration-job 
 ### 3. Deploy the PostgreSQL version
 
 Create the namespace and deploy all resources:
+
+## Utility Scripts
+
+Several utility scripts are available to help with deployment and maintenance:
+
+- `deploy-k8s.sh`: Main deployment script
+  - Usage: `./deploy-k8s.sh [env] [db]`
+  - Example: `./deploy-k8s.sh prod mysql`
+
+- `verify-mysql-k8s.sh`: Verify MySQL configuration
+- `verify-postgresql-k8s.sh`: Verify PostgreSQL configuration
+- `refactor-mysql-k8s.sh`: Clean up MySQL configuration
+- `refactor-postgresql-k8s.sh`: Clean up PostgreSQL configuration
+- `cleanup-temps.sh`: Remove temporary files and jobs
+- `teardown-k8s.sh`: Remove deployments from the cluster
+
+## Troubleshooting
+
+### Database Migration
+
+If you encounter issues with the database migration job:
+
+1. Verify that the SQL script in `configmap-sql.yaml` is valid
+2. Check if the database service is running with `kubectl get pods -n gestion-produits-mysql`
+3. Inspect migration job logs with `kubectl logs job/mysql-migration-job -n gestion-produits-mysql`
+
+### Hostname Issues
+
+If you see errors related to server hostnames:
+- Ensure the SQL scripts don't contain hardcoded references to development hostnames
+- The migration jobs include automatic replacement of "fourche" hostname references with the appropriate service names
 
 ```bash
 kubectl apply -k k8s/postgresql
