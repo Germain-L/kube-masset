@@ -60,8 +60,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
+      - name: Debug secrets availability
+        run: |
+          if [ -n "${{ secrets.SSH_USER }}" ]; then echo "SSH_USER is set"; else echo "SSH_USER is empty"; fi
+          if [ -n "${{ secrets.SSH_HOST }}" ]; then echo "SSH_HOST is set"; else echo "SSH_HOST is empty"; fi
+      
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.8.0
         with:
@@ -74,4 +79,4 @@ jobs:
           
       - name: Deploy to K3s
         run: |
-          ssh -o StrictHostKeyChecking=accept-new ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} 'cd ~/projects/gestion-produits && git pull && ./deploy-k8s.sh ${{ github.workflow == "PostgreSQL Build and Push" && "dev" || "prod" }} ${{ github.workflow == "PostgreSQL Build and Push" && "postgresql" || "mysql" }}'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ~/projects/gestion-produits && git pull && ./deploy-k8s.sh dev postgresql"
