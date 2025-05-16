@@ -11,7 +11,7 @@ on:
 
 env:
   REGISTRY: registry.germainleignel.com/library
-  IMAGE_NAME: gestion-produits
+  IMAGE_NAME: gestion-produits-pg
   DB_TYPE: postgresql
 
 jobs:
