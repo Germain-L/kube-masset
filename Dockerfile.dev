@@ -18,8 +18,11 @@ RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini" \
     && sed -i 's/upload_max_filesize = 2M/upload_max_filesize = 20M/' "$PHP_INI_DIR/php.ini" \
     && sed -i 's/post_max_size = 8M/post_max_size = 20M/' "$PHP_INI_DIR/php.ini"
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache mod_rewrite and env
+RUN a2enmod rewrite env
+
+# Create Apache environment config file
+RUN touch /etc/apache2/conf-available/environment.conf
 
 # Set working directory
 WORKDIR /var/www/html
@@ -31,6 +34,10 @@ RUN mkdir -p /var/www/html/uploads \
 
 # Change ownership of /var/www
 RUN chown -R www-data:www-data /var/www
+
+# Copy custom entrypoint
+COPY php/docker-php-entrypoint /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-php-entrypoint
 
 # Install Xdebug for debugging (optional)
 RUN pecl install xdebug \

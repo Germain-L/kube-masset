@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+# Add environment variables to Apache
+if [ ! -z "$DB_HOST" ]; then
+  echo "SetEnv DB_HOST ${DB_HOST}" >> /etc/apache2/conf-available/environment.conf
+fi
+
+if [ ! -z "$DB_USER" ]; then
+  echo "SetEnv DB_USER ${DB_USER}" >> /etc/apache2/conf-available/environment.conf
+fi
+
+if [ ! -z "$DB_PASSWORD" ]; then
+  echo "SetEnv DB_PASSWORD ${DB_PASSWORD}" >> /etc/apache2/conf-available/environment.conf
+fi
+
+if [ ! -z "$DB_NAME" ]; then
+  echo "SetEnv DB_NAME ${DB_NAME}" >> /etc/apache2/conf-available/environment.conf
+fi
+
+if [ ! -z "$PHP_DISPLAY_ERRORS" ]; then
+  echo "SetEnv PHP_DISPLAY_ERRORS ${PHP_DISPLAY_ERRORS}" >> /etc/apache2/conf-available/environment.conf
+fi
+
+# Enable the environment configuration
+a2enconf environment
+
+# First arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+  set -- apache2-foreground "$@"
+fi
+
+exec "$@"

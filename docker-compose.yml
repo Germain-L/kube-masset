@@ -1,45 +1,63 @@
+version: '3.8'
+
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8080}:80"
     volumes:
       - ./php/www:/var/www/html
       - ./uploads:/var/www/html/uploads
     depends_on:
       - db
     environment:
-      - PHP_DISPLAY_ERRORS=1
-      - DB_HOST=db
-      - DB_USER=gestionuser
-      - DB_PASSWORD=devpassword
-      - DB_NAME=gestiondb
+      - PHP_DISPLAY_ERRORS=${PHP_DISPLAY_ERRORS}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
 
   db:
     image: mariadb:10.6
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"
     volumes:
       - gestion_mysql_data:/var/lib/mysql
       - ./sql:/docker-entrypoint-initdb.d
     environment:
       - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=gestiondb
-      - MYSQL_USER=gestionuser
-      - MYSQL_PASSWORD=devpassword
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     ports:
-      - "8081:80"
+      - "${PHPMYADMIN_PORT:-8081}:80"
     depends_on:
       - db
     environment:
-      - PMA_HOST=db
-      - PMA_USER=gestionuser
-      - PMA_PASSWORD=devpassword
+      - PMA_HOST=${DB_HOST}
+      - PMA_USER=${DB_USER}
+      - PMA_PASSWORD=${DB_PASSWORD}
+
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=${DB_HOST}
+      # Use root user for migration to ensure we have proper permissions
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - DB_NAME=${DB_NAME}
+      - REGULAR_USER=${DB_USER}
+      - REGULAR_PASSWORD=${DB_PASSWORD}
+    restart: on-failure
 
 volumes:
   gestion_mysql_data:
